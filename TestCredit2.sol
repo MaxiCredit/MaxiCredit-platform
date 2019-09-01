@@ -1,5 +1,5 @@
 pragma solidity >=0.4.25;
-import "./TestCreditAgreement.sol";
+import "./TestCreditC.sol";
 
 contract TestUsersInterface {
     function registerUser(string _firstName, uint _birthDate, string _mothersFirstName, uint _idDocumentNumber,
