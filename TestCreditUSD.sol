@@ -17,7 +17,7 @@ contract TestCredit {
     
     address public contractOwner;
     address MC2Address = 0x6E063426Cb913de344d10BB4f79d1afF4f078276; 
-    address stableCoinAddress;
+    address[] public stableCoins = { 0xST2address, 0xST6, 0xST9, 0xST18}; //should change them to test tokens addresses
         
     TestUsersInterface tui = TestUsersInterface(0xafed8B8245BaD4063C0E2aeb459B7Bf78c11a488); 
     
@@ -104,16 +104,47 @@ contract TestCredit {
       
     }
     
-    function getBalance(address _addr, address _stableCoinAddress) public view returns(uint) {
-        StableCoinInterface sci = StableCoinInterface(_stableCoinAddress)
-        return(sci.getTokenBalance(_addr));
+    function getBalanceInUSD(address _addr, address _stableCoinAddress) public view returns(uint) {
+        StableCoinInterface sci = StableCoinInterface(_stableCoinAddress);
+        uint customBalance = sci.balanceOf(_addr);
+        uint customDecimals = sci.decimals();
+        uint balanceInUSD = uint(customBalance * 100 / 10 ** customDecimals); //USD balance is USD cent
+        return(balanceInUSD);
     }
     
+    function allowanceInUSD(address _addr, address _stableCoinAddress) public view returns(uint) {
+        StableCoinInterface sci = StableCoinInterface(_stableCoinAddress);
+        uint customAllowance = sci.allowance(_addr, address(this));
+        uint customDecimals = sci.decimals();
+        uint allowanceInUSD = uint(customAllowance * 100 / 10 ** customDecimals); //USD allowance is USD cent
+        return(allowanceInUSD);
+    }
+    
+    //Check balance in every stablecoins from our stableCoins array
+    //Should make it flexible with a tupple and update stableCoins array function
+    function checkBalance(address _addr) public view returns(uint, uint, uint, uint) {
+        uint ST2Balance = getBalanceInUSD(_addr, stableCoins[0]);
+        uint ST6Balance = getBalanceInUSD(_addr, stableCoins[1]);
+        uint ST9Balance = getBalanceInUSD(_addr, stableCoins[2]);
+        uint ST18Balance = getBalanceInUSD(_addr, stableCoins[3]);
+        return(ST2Balance, ST6Balance, ST9Balance, ST18Balance);
+    }
+    
+    //Check allowance in every stablecoins from our stableCoins array
+    //Should make it flexible with a tupple and update stableCoins array function
+    function checkAllowance(address _addr) public view returns(uint, uint, uint, uint) {
+        uint ST2allowance = allowanceInUSD(_addr, stableCoins[0]);
+        uint ST6allowance = allowanceInUSD(_addr, stableCoins[1]);
+        uint ST9allowance = allowanceInUSD(_addr, stableCoins[2]);
+        uint ST18allowance = allowanceInUSD(_addr, stableCoins[3]);
+        return(ST2allowance, ST6allowance, ST9allowance, ST18allowance);
+    }
+            
     function createCreditOffer(uint _loanAmount, uint _loanType, uint _loanLength, uint _periodNumber, uint _interestRate, uint _minCreditScore, uint _lastTo, address _stableCoinAddres) public {
         //require(tui.checkUsersAddress(msg.sender) == true);??
         StableCoinInterface sci = StableCoinInterface(_stableCoinAddress);
-        require(sci.getTokenBalance(msg.sender) >= _loanAmount);
-        require(sci.allowance(msg.sender, address(this)) >= _loanAmount);
+        require(getBalanceInUSD(msg.sender, _stableCoinAddress) >= _loanAmount);
+        require(allowanceInUSD(msg.sender, _stableCoinAddress) >= _loanAmount);
         uint creditOfferLastTo = now + _lastTo;
         uint lendersId = getSenderId(msg.sender);
         creditOffers.push(CreditOffer(msg.sender, lendersId, _loanAmount, _stableCoinAddress, _loanType, _loanLength, _periodNumber, _interestRate, _minCreditScore, creditOfferLastTo));
