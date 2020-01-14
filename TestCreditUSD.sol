@@ -6,6 +6,7 @@ import "./TestCreditContract.sol";
 
 /*
 This contract is for USD based Ethereum stablecoins like Tether, USDC, DAI, PAXOS, GEMINI...
+Loan amount should be declared in USD cent. Custom functions should handle different decimals of the different stablecoins
 */
 
 contract TestCredit {
